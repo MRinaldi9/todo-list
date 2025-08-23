@@ -1,0 +1,7 @@
+{
+  "deno.enable": true,
+  "deno.defaultTaskCommand": "open",
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  }
+}
