@@ -7,4 +7,5 @@ export function generateSecret() {
   );
 
   Deno.env.set('SECRET_KEY', secret);
+  console.log(Deno.env.toObject());
 }
