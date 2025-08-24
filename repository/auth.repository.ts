@@ -14,14 +14,18 @@ type AuthResponse = {
 export const registerUser = async (
   data: RegisterDTO,
 ): Promise<AuthResponse> => {
-  if (await getUserByEmail(data.email)) {
-    throw new AuthError('User already exists');
-  }
   const ulidUser = ulid();
   const primaryKey = ['users', ulidUser];
+  const emailKey = ['userEmail', data.email];
 
-  await db.getDb().set(primaryKey, data);
-  await db.getDb().set(['userEmail', data.email], primaryKey);
+  const transaction = db.atomic().check({ key: emailKey, versionstamp: null })
+    .set(primaryKey, data)
+    .set(emailKey, primaryKey);
+
+  const { ok } = await transaction.commit();
+  if (!ok) {
+    throw new AuthError('User already registered');
+  }
   return { userId: ulidUser, name: data.name, email: data.email };
 };
 
@@ -44,11 +48,11 @@ const getUserByEmail = async (
 ): Promise<
   { user: RegisterDTO | null; primaryKey: UserKey } | null
 > => {
-  const { value: primaryKeyUser } = await db.getDb().get<UserKey>([
+  const { value: primaryKeyUser } = await db.getEntry<UserKey>([
     'userEmail',
     email,
   ]);
   if (!primaryKeyUser) return null;
-  const { value: userData } = await db.getDb().get<RegisterDTO>(primaryKeyUser);
+  const { value: userData } = await db.getEntry<RegisterDTO>(primaryKeyUser);
   return { user: userData, primaryKey: primaryKeyUser };
 };

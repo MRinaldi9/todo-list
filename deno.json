@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno serve -WRE --unstable-kv --watch main.ts"
+    "dev": "deno serve -WRE --unstable-kv --env-file --watch main.ts"
   },
   "imports": {
     "@bepalo/jwt": "jsr:@bepalo/jwt@^2.0.9",

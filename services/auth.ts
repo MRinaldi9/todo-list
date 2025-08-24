@@ -60,7 +60,7 @@ export const login: Handler = async (req) => {
   if (error) {
     return new Response(
       JSON.stringify({ message: error.message }),
-      { status: STATUS_CODE.Conflict },
+      { status: STATUS_CODE.Unauthorized },
     );
   }
 
