@@ -4,7 +4,7 @@ class DatabaseLayer {
 
   private constructor() {}
 
-  static async getInstance() {
+  static async getInstance(): Promise<DatabaseLayer> {
     if (!this.#instance) {
       this.#instance = new DatabaseLayer();
       await this.#instance.initialize();
@@ -12,13 +12,16 @@ class DatabaseLayer {
     return this.#instance;
   }
 
-  public async deleteAllEntries(prefix: string[]) {
+  public async deleteAllEntries(prefix: string[]): Promise<void> {
     for await (const entry of this.#db.list({ prefix })) {
       this.#db.delete(entry.key);
     }
   }
 
-  public async upsertEntry(key: Deno.KvKey, value: unknown) {
+  public async upsertEntry(
+    key: Deno.KvKey,
+    value: unknown,
+  ): Promise<Deno.KvCommitResult> {
     return await this.#db.set(key, value);
   }
 
@@ -29,11 +32,22 @@ class DatabaseLayer {
     return await this.#db.get(key, options);
   }
 
-  public atomic() {
+  public async getEntries<T>(
+    selector: Deno.KvListSelector,
+    options?: Deno.KvListOptions,
+  ): Promise<Deno.KvEntry<T>[]> {
+    const entries: Deno.KvEntry<T>[] = [];
+    for await (const entry of this.#db.list<T>(selector, options)) {
+      entries.push(entry);
+    }
+    return entries;
+  }
+
+  public atomic(): Deno.AtomicOperation {
     return this.#db.atomic();
   }
 
-  private async initialize() {
+  private async initialize(): Promise<void> {
     this.#db = await Deno.openKv();
   }
 }

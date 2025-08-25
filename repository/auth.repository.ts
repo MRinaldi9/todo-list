@@ -1,9 +1,10 @@
-import { ulid } from '@std/ulid';
 import { db } from '../database/index.ts';
 import { LoginDTO, RegisterDTO } from '../DTO/auth.dto.ts';
 import { AuthError } from '../errors/index.ts';
+import { authKeys } from '../queries-key/index.ts';
+import { generateUlid } from '../utils/ulid.ts';
 
-type UserKey = [string, string];
+type UserKey = ReturnType<typeof authKeys.userEmail>;
 
 type AuthResponse = {
   userId: string;
@@ -14,9 +15,9 @@ type AuthResponse = {
 export const registerUser = async (
   data: RegisterDTO,
 ): Promise<AuthResponse> => {
-  const ulidUser = ulid();
-  const primaryKey = ['users', ulidUser];
-  const emailKey = ['userEmail', data.email];
+  const ulidUser = generateUlid();
+  const primaryKey = authKeys.user(ulidUser);
+  const emailKey = authKeys.userEmail(data.email);
 
   const transaction = db.atomic().check({ key: emailKey, versionstamp: null })
     .set(primaryKey, data)
@@ -48,10 +49,9 @@ const getUserByEmail = async (
 ): Promise<
   { user: RegisterDTO | null; primaryKey: UserKey } | null
 > => {
-  const { value: primaryKeyUser } = await db.getEntry<UserKey>([
-    'userEmail',
-    email,
-  ]);
+  const { value: primaryKeyUser } = await db.getEntry<UserKey>(
+    authKeys.userEmail(email),
+  );
   if (!primaryKeyUser) return null;
   const { value: userData } = await db.getEntry<RegisterDTO>(primaryKeyUser);
   return { user: userData, primaryKey: primaryKeyUser };

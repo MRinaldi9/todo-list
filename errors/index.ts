@@ -4,3 +4,10 @@ export class AuthError extends Error {
     this.name = 'AuthError';
   }
 }
+
+export class TodoError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TodoError';
+  }
+}

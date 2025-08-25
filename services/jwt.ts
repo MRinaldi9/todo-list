@@ -1,4 +1,10 @@
-import { JWT } from '@bepalo/jwt/mod.ts';
+import {
+  JWT,
+  JwtError,
+  JwtErrorCode,
+  JwtPayload,
+  JwtResult,
+} from '@bepalo/jwt/mod.ts';
 
 /**
  * Definiamo un tipo per il payload che la nostra applicazione userà.
@@ -13,6 +19,7 @@ export type AppPayload = {
 class JwtService {
   static #instance: JwtService;
   #jwtInstance: JWT<AppPayload>;
+  #payloadToken: JwtPayload<AppPayload> | undefined;
 
   private constructor() {
     const secretKey = Deno.env.get('SECRET_KEY');
@@ -25,6 +32,10 @@ class JwtService {
 
     // 2. Crea l'istanza JWT una sola volta.
     this.#jwtInstance = JWT.createSymmetric(secretKey, 'HS256');
+  }
+
+  get payloadToken(): JwtPayload<AppPayload> | undefined {
+    return this.#payloadToken;
   }
 
   /**
@@ -43,7 +54,10 @@ class JwtService {
    * @param expiresIn Durata del token (es. "2h", "7d", "30m").
    * @returns Il token JWT firmato.
    */
-  public signToken(payload: AppPayload, expiresIn: string = '1h'): string {
+  public signToken(
+    payload: AppPayload,
+    expiresIn = new Date(Date.now() + 3600 * 1000),
+  ): string {
     const token = this.#jwtInstance.signSync({
       ...payload,
       iat: JWT.now(), // Issued at (ora)
@@ -57,15 +71,18 @@ class JwtService {
    * @param token Il token JWT da verificare.
    * @returns Il payload del token se valido, altrimenti null.
    */
-  public verifyToken(token: string): AppPayload | null {
-    const { valid, payload, error } = this.#jwtInstance.verifySync(token);
-
-    if (!valid) {
-      console.warn('Verifica del token fallita:', error?.message);
-      return null;
+  public verifyToken(headers: Headers): Omit<JwtResult<AppPayload>, 'payload'> {
+    const token = headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return {
+        valid: false,
+        error: new JwtError('Unathorized', JwtErrorCode.tokenHeaderInvalid),
+      };
     }
 
-    return payload as AppPayload;
+    const { payload, valid, error } = this.#jwtInstance.verifySync(token);
+    this.#payloadToken = payload;
+    return { valid, error };
   }
 }
 
