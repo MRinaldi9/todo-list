@@ -2,12 +2,12 @@ import { db } from '../database/index.ts';
 import { LoginDTO, RegisterDTO } from '../DTO/auth.dto.ts';
 import { AuthError } from '../errors/index.ts';
 import { authKeys } from '../queries-key/index.ts';
-import { generateUlid } from '../utils/ulid.ts';
+import { generateUlid, ULID } from '../utils/ulid.ts';
 
-type UserKey = ReturnType<typeof authKeys.userEmail>;
+type UserKey = ReturnType<typeof authKeys.user>;
 
 type AuthResponse = {
-  userId: string;
+  userId: ULID;
   name: string;
   email: string;
 };
@@ -37,7 +37,7 @@ export const loginUser = async (
   if (!result || !result.user) {
     throw new AuthError('User or password is invalid');
   }
-  const { primaryKey: [_, userId], user } = result;
+  const { primaryKey: [, userId], user } = result;
   if (user.password !== data.password) {
     throw new AuthError('User or password is invalid');
   }

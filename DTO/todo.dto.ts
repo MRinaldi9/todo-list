@@ -1,3 +1,4 @@
+import { Simplify } from '@gdquest/type-fest';
 import { InferOutput, object, pipe, string, transform } from 'valibot';
 
 export const TodoSchema = object({
@@ -12,5 +13,5 @@ export const TodoDbSchema = (id: bigint) =>
   );
 
 export type TodoDTO = InferOutput<typeof TodoSchema>;
-export type TodoDbDTO = InferOutput<ReturnType<typeof TodoDbSchema>>;
+export type TodoDbDTO = Simplify<InferOutput<ReturnType<typeof TodoDbSchema>>>;
 export type TodoResponse = Omit<TodoDbDTO, 'id'> & { id: number };

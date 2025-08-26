@@ -5,6 +5,7 @@ import {
   JwtPayload,
   JwtResult,
 } from '@bepalo/jwt/mod.ts';
+import { ULID } from '../utils/ulid.ts';
 
 /**
  * Definiamo un tipo per il payload che la nostra applicazione userà.
@@ -13,7 +14,7 @@ import {
 export type AppPayload = {
   email: string;
   name: string;
-  sub: string; // ID utente
+  sub: ULID; // ID utente
 };
 
 class JwtService {

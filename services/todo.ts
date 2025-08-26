@@ -25,6 +25,7 @@ export const createTodo: Handler = async (req): Promise<Response> => {
       { status: STATUS_CODE.BadRequest },
     );
   }
+
   const { data, error } = await tryCatch<TodoDbDTO, TodoError>(
     insertTodo(todoData, jwtService.payloadToken?.sub),
   );

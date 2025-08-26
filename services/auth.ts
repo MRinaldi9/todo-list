@@ -24,8 +24,8 @@ export const register: Handler = async (req) => {
 
   const { error, data } = await tryCatch(registerUser(userData));
   if (error) {
-    return new Response(
-      JSON.stringify({ message: error.message }),
+    return Response.json(
+      { message: error.message },
       { status: STATUS_CODE.Conflict },
     );
   }
@@ -35,8 +35,8 @@ export const register: Handler = async (req) => {
     sub: data.userId,
   });
 
-  return new Response(
-    JSON.stringify({ token }),
+  return Response.json(
+    { token },
     { status: STATUS_CODE.Created },
   );
 };
@@ -58,8 +58,8 @@ export const login: Handler = async (req) => {
 
   const { error, data } = await tryCatch(loginUser(loginData));
   if (error) {
-    return new Response(
-      JSON.stringify({ message: error.message }),
+    return Response.json(
+      { message: error.message },
       { status: STATUS_CODE.Unauthorized },
     );
   }
@@ -70,8 +70,8 @@ export const login: Handler = async (req) => {
     sub: data.userId,
   });
 
-  return new Response(
-    JSON.stringify({ token }),
+  return Response.json(
+    { token },
     { status: STATUS_CODE.OK },
   );
 };
