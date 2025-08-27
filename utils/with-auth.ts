@@ -9,12 +9,16 @@ import { jwtService } from '../services/jwt.ts';
  */
 export function withAuth(handler: Handler): Handler {
   return async (req, params, info) => {
-    const { valid, error } = jwtService.verifyToken(req.headers);
+    const { valid, error } = jwtService.verifyToken(req);
 
     if (!valid) {
       return new Response(
         JSON.stringify({ message: error?.message || 'Unauthorized' }),
-        { status: STATUS_CODE.Unauthorized },
+        {
+          status: req.method === 'POST'
+            ? STATUS_CODE.Unauthorized
+            : STATUS_CODE.Forbidden,
+        },
       );
     }
 

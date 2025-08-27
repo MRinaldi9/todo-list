@@ -1,5 +1,10 @@
 import { safeParse } from 'valibot';
-import { TodoDbDTO, TodoDbSchema, TodoDTO } from '../DTO/todo.dto.ts';
+import {
+  TodoDbDTO,
+  TodoDbSchema,
+  TodoDTO,
+  TodoUpdateDTO,
+} from '../DTO/todo.dto.ts';
 import { db } from '../database/index.ts';
 import { todoKeys } from '../queries-key/index.ts';
 import { ULID } from '../utils/ulid.ts';
@@ -26,4 +31,29 @@ export const insertTodo = async (
   if (!success) throw new TodoError('Invalid todo item for database insertion');
   await db.upsertEntry(todoKeys.todo(newTodoId), newTodo);
   return newTodo;
+};
+
+export const updateTodoDb = async (
+  todoItem: TodoUpdateDTO,
+  idTodo: number,
+): Promise<TodoDbDTO> => {
+  const todoKey = todoKeys.todo(BigInt(idTodo));
+  const existingEntry = await db.getEntry<TodoDbDTO>(
+    todoKey,
+  );
+
+  if (!existingEntry.value) {
+    throw new TodoError('Todo item not found');
+  }
+
+  const updateTodo = { ...existingEntry.value, ...todoItem };
+
+  const tx = await db.atomic().check(existingEntry).set(todoKey, updateTodo)
+    .commit();
+  if (!tx.ok) {
+    throw new TodoError(
+      'The todo item was modified by another request. Please try again.',
+    );
+  }
+  return updateTodo;
 };

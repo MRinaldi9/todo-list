@@ -57,7 +57,7 @@ class JwtService {
    */
   public signToken(
     payload: AppPayload,
-    expiresIn = new Date(Date.now() + 3600 * 1000),
+    expiresIn = Date.now() + 3600 * 1000,
   ): string {
     const token = this.#jwtInstance.signSync({
       ...payload,
@@ -72,12 +72,15 @@ class JwtService {
    * @param token Il token JWT da verificare.
    * @returns Il payload del token se valido, altrimenti null.
    */
-  public verifyToken(headers: Headers): Omit<JwtResult<AppPayload>, 'payload'> {
-    const token = headers.get('Authorization')?.replace('Bearer ', '');
+  public verifyToken(req: Request): Omit<JwtResult<AppPayload>, 'payload'> {
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
       return {
         valid: false,
-        error: new JwtError('Unathorized', JwtErrorCode.tokenHeaderInvalid),
+        error: new JwtError(
+          req.method !== 'POST' ? 'Forbidden' : 'Unauthorized',
+          JwtErrorCode.tokenHeaderInvalid,
+        ),
       };
     }
 

@@ -5,7 +5,7 @@ import { pipe, safeParse, string, ulid } from 'valibot';
 export type ULID = Tagged<string, 'ULID'>;
 
 export function generateUlid(): ULID {
-  return stdUlid();
+  return stdUlid() as ULID;
 }
 
 const ULIDSchema = pipe(string(), ulid());

@@ -1,6 +1,6 @@
 import { Route } from '@std/http/unstable-route';
 import { login, register } from '../services/auth.ts';
-import { createTodo } from '../services/todo.ts';
+import { createTodo, updateTodo } from '../services/todo.ts';
 import { withAuth } from '../utils/with-auth.ts';
 
 export const routes: Route[] = [
@@ -18,5 +18,10 @@ export const routes: Route[] = [
     method: 'POST',
     pattern: new URLPattern({ pathname: '/posts' }),
     handler: withAuth(createTodo),
+  },
+  {
+    method: 'PUT',
+    pattern: new URLPattern({ pathname: '/posts/:id' }),
+    handler: withAuth(updateTodo),
   },
 ];
