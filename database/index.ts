@@ -1,3 +1,5 @@
+import { PrimaryKey } from '../queries-key/index.ts';
+
 class DatabaseLayer {
   #db!: Deno.Kv;
   static #instance: DatabaseLayer;
@@ -45,6 +47,17 @@ class DatabaseLayer {
 
   public atomic(): Deno.AtomicOperation {
     return this.#db.atomic();
+  }
+
+  public async clearDb(): Promise<PromiseSettledResult<void>[]> {
+    const results = await Promise.allSettled([
+      this.deleteAllEntries([PrimaryKey.Todos]),
+      this.deleteAllEntries([PrimaryKey.Users]),
+      this.deleteAllEntries([PrimaryKey.TodosCounter]),
+      this.deleteAllEntries([PrimaryKey.UsersEmail]),
+    ]);
+
+    return results;
   }
 
   private async initialize(): Promise<void> {

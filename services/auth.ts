@@ -14,8 +14,8 @@ export const register: Handler = async (req) => {
   );
 
   if (!success) {
-    return new Response(
-      JSON.stringify(flatten<typeof RegisterSchema>(issues)),
+    return Response.json(
+      flatten<typeof RegisterSchema>(issues).nested,
       {
         status: STATUS_CODE.BadRequest,
       },
@@ -48,8 +48,8 @@ export const login: Handler = async (req) => {
   );
 
   if (!success) {
-    return new Response(
-      JSON.stringify(flatten<typeof LoginSchema>(issues)),
+    return Response.json(
+      flatten<typeof LoginSchema>(issues).nested,
       {
         status: STATUS_CODE.BadRequest,
       },

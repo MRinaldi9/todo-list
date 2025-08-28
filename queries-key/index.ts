@@ -13,6 +13,6 @@ export const authKeys = {
 } as const;
 
 export const todoKeys = {
-  todo: (id: bigint) => [PrimaryKey.Todos, id] as const,
+  todo: (id: bigint, userId: ULID) => [PrimaryKey.Todos, id, userId] as const,
   counter: (userId: ULID) => [PrimaryKey.TodosCounter, userId] as const,
 } as const;

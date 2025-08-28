@@ -12,9 +12,8 @@ import { TodoError } from '../errors/index.ts';
 
 export const insertTodo = async (
   todoItem: TodoDTO,
-  userId: ULID | undefined,
+  userId: ULID,
 ): Promise<TodoDbDTO> => {
-  if (!userId) throw new Error('User ID is required to insert a todo item');
   const counterTodoKeys = todoKeys.counter(userId);
   const tx = await db.atomic().sum(counterTodoKeys, 1n).commit();
   if (!tx.ok) throw new TodoError('Could not increment todo counter');
@@ -29,15 +28,16 @@ export const insertTodo = async (
     todoItem,
   );
   if (!success) throw new TodoError('Invalid todo item for database insertion');
-  await db.upsertEntry(todoKeys.todo(newTodoId), newTodo);
+  await db.upsertEntry(todoKeys.todo(newTodoId, userId), newTodo);
   return newTodo;
 };
 
 export const updateTodoDb = async (
   todoItem: TodoUpdateDTO,
   idTodo: number,
+  userId: ULID,
 ): Promise<TodoDbDTO> => {
-  const todoKey = todoKeys.todo(BigInt(idTodo));
+  const todoKey = todoKeys.todo(BigInt(idTodo), userId);
   const existingEntry = await db.getEntry<TodoDbDTO>(
     todoKey,
   );

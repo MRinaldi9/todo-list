@@ -22,15 +22,22 @@ export const createTodo: Handler = async (req): Promise<Response> => {
     req,
     TodoSchema,
   );
+  const userId = jwtService.payloadToken?.sub;
   if (!success) {
     return Response.json(
-      flatten<typeof TodoSchema>(issues),
+      flatten<typeof TodoSchema>(issues).nested,
       { status: STATUS_CODE.BadRequest },
     );
   }
 
+  if (!userId) {
+    return Response.json(
+      { message: 'Unauthorized' },
+      { status: STATUS_CODE.Unauthorized },
+    );
+  }
   const { data, error } = await tryCatch<TodoDbDTO, TodoError>(
-    insertTodo(todoData, jwtService.payloadToken?.sub),
+    insertTodo(todoData, userId),
   );
   if (error) {
     return Response.json({
@@ -48,9 +55,18 @@ export const updateTodo: Handler = async (req, params) => {
     req,
     TodoUpdateSchema,
   );
+  const userId = jwtService.payloadToken?.sub;
+
+  if (!userId) {
+    return Response.json(
+      { message: 'Unauthorized' },
+      { status: STATUS_CODE.Unauthorized },
+    );
+  }
+
   if (!success) {
     return Response.json(
-      flatten<typeof TodoUpdateSchema>(issues),
+      flatten<typeof TodoUpdateSchema>(issues).nested,
       { status: STATUS_CODE.BadRequest },
     );
   }
@@ -66,7 +82,7 @@ export const updateTodo: Handler = async (req, params) => {
   }
 
   const { data, error } = await tryCatch<TodoDbDTO, TodoError>(
-    updateTodoDb(todoData, idTodo),
+    updateTodoDb(todoData, idTodo, userId),
   );
   if (error) {
     return Response.json({
